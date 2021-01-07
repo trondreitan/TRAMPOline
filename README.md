@@ -19,6 +19,7 @@ This is a set of scripts for analyzing temporal multispecies occupancy models ta
 4.	Analysis files. These are also made so that one model can be replaced by another easily, using the “model” variable.
 
       a)	lookat.R - Reads multiple output files for a given model (specified at the start of the script), lists the model log-likelihood estimates, makes an overall model likelihood from all runs, creates parameter mean, median and standard deviation files and gives parameter estimate summaries. The parameter mean, median and standard deviation files are important, as more complex models rely on such files from simpler models. (The "foccu" model relies on the "global" model results, the "f" model relies on "foccu" results and more complex models rely on the "f" results). These files have been provided for our dataset, so you don't have to rerun the simplest model over again. 
+      
       b)	lookat_parameters.R - Same as lookat.R but with more code focusing on parameter estimates. 
       
       c)	lookat_modelselect.R - Special "lookat" file for the model selection case.  
