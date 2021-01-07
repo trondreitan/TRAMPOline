@@ -6,15 +6,15 @@ This is a set of scripts for analyzing temporal multispecies occupancy models ta
 
 3.	Support scripts. These are scripts providing useful functions and code for the run and model scripts and are generally made so that the model used can be changed to a different model easily. These are: 
 
-            a)	3stage.R/3stage_cpu.R – These two scripts run the MCMC sampling using the LaplacesDemon package. This is done in three stages. The first runs "UESS" method, and the parameter set sample with the best likelihood is then chosen as the start for the next MCMC stage, which uses the "AMWG" method. The best parameter set according to the likelihood from that MCMC sampling is then used as the start for the third stage, using the "CHARM" method. it is this latter MCMC sampling which is then saved in a file named (modelname).Rdata". The script calls the other support scripts listed below. The "3stage_cpu.R" script allows for setting the number of CPUs (or cores) used by LaplacesDemon and is called by the run scripts of the more complex models. 
+      a)	3stage.R/3stage_cpu.R – These two scripts run the MCMC sampling using the LaplacesDemon package. This is done in three stages. The first runs "UESS" method, and the parameter set sample with the best likelihood is then chosen as the start for the next MCMC stage, which uses the "AMWG" method. The best parameter set according to the likelihood from that MCMC sampling is then used as the start for the third stage, using the "CHARM" method. it is this latter MCMC sampling which is then saved in a file named (modelname).Rdata". The script calls the other support scripts listed below. The "3stage_cpu.R" script allows for setting the number of CPUs (or cores) used by LaplacesDemon and is called by the run scripts of the more complex models. 
 
-            b)	read_data.R - Reads the data from the data file, in our case named "allsamples_with_counts_and_metainfo.csv", and creates the data variables the other scripts use. 
+      b)	read_data.R - Reads the data from the data file, in our case named "allsamples_with_counts_and_metainfo.csv", and creates the data variables the other scripts use. 
 
-            c)	init_rerun.R - The init functions should be defined in each "model_(modelname).R" script, but the functions in the init_reruns.R script call these multiple times and chooses the one with the best combined prior and likelihood, in order to start the first MCMC run from a good place. 
+      c)	init_rerun.R - The init functions should be defined in each "model_(modelname).R" script, but the functions in the init_reruns.R script call these multiple times and chooses the one with the best combined prior and likelihood, in order to start the first MCMC run from a good place. 
 
-            d)	make_laplace_wrapper.R - Creates the structures that the LaplacesDemon package expects, from the data and prior/likelihood-specifications. 
+      d)	make_laplace_wrapper.R - Creates the structures that the LaplacesDemon package expects, from the data and prior/likelihood-specifications. 
 
-            e)	find_best_par.R - Runs through the samples returned by LaplacesDemon and finds the parameter set with the highest likelihood.
+      e)	find_best_par.R - Runs through the samples returned by LaplacesDemon and finds the parameter set with the highest likelihood.
 
 4.	Analysis files. These are also made so that one model can be replaced by another easily, using the “model” variable.
 
