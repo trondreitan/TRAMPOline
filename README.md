@@ -34,7 +34,7 @@ This is a set of scripts for analyzing temporal multispecies occupancy models ta
       
        h)	plotting_full_model.R - Reads the plotting_variables.RData file from "rel_abundance_start.R" and plots from that.
 
-5.	Data file: allsamples_with_counts_and_metainfo.csv. Bryozoan site-wise data for 3 focus species and 1 superspeces from the Wanganui basin. Contains ∂18O- or Mg/Ca data in addition, for regression models.
+5.	Data files: allsamples_with_counts_and_metainfo.csv. Bryozoan site-wise data for 3 focus species and 1 superspeces from the Wanganui basin. Contains ∂18O- or Mg/Ca data in addition, for regression models.
 
 6.	Parameter estimate files: par_mean_global.RData, par_mean_foccu.RData, par_mean_f.RData, par_median_global.RData, par_median_foccu.RData, par_median_f.RData, par_sd_global.RData, par_sd_foccu.RData, par_sd_f.RData. Contains mean, median, and standard deviation from the MCMC samples of the simplest models ("global", "foccu" and "f").
 
