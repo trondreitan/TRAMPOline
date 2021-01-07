@@ -20,11 +20,17 @@ This is a set of scripts for analyzing temporal multispecies occupancy models ta
 
       a)	lookat.R - Reads multiple output files for a given model (specified at the start of the script), lists the model log-likelihood estimates, makes an overall model likelihood from all runs, creates parameter mean, median and standard deviation files and gives parameter estimate summaries. The parameter mean, median and standard deviation files are important, as more complex models rely on such files from simpler models. (The "foccu" model relies on the "global" model results, the "f" model relies on "foccu" results and more complex models rely on the "f" results). These files have been provided for our dataset, so you don't have to rerun the simplest model over again. 
       b)	lookat_parameters.R - Same as lookat.R but with more code focusing on parameter estimates. 
+      
       c)	lookat_modelselect.R - Special "lookat" file for the model selection case.  
+      
       d)	rel_abundance2.R - Calculates relative abundance right from the MCMC output files. 
+      
       e)	rel_abundance_start.R - Also calculates relative abundance, but stores the estimates in an output file called "plotting_variables" rather than plot directly. 
+      
       f)	rel_abundance_lambda.R - Calculates, saves and plots relative abundance estimates for the "lambda_f_sf" model. 
+      
       g)	compare_rel_abundance.R - Plots relative abundance estimates for multiple models. (One needs to use the rel_abundance_start.R and rel_abundance_lambda.R scripts for making the relative abundance output files used here). 
+      
       h)	plotting_full_model.R - Reads the plotting_variables.RData file from "rel_abundance_start.R" and plots from that.
 
 5.	Data file: allsamples_with_counts_and_metainfo.csv. Bryozoan site-wise data for 3 focus species and 1 superspeces from the Wanganui basin. Contains ∂18O- or Mg/Ca data in addition, for regression models.
