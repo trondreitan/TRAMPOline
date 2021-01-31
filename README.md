@@ -20,7 +20,9 @@ This is a set of scripts for analyzing temporal multispecies occupancy models ta
 
       i) lambda_f_sf – This is not an extension of the full model, but rather an alternative to it which puts increased emphasis on relative abundance. The abundance estimates rather than the detection probabilities are used as a basis for an additive model with species-dependent global parameters, formation-dependent random effects and formations- and species-dependent random effects. The detection probabilities are then derived from these abundance estimates, for use in the likelihood. Since this model has a slightly different structure, it has its own relative abundance script (real_abundance_lambda.R), see below.
 
+
 2. Run scripts. These have file names of the type "run_(modelname).R" (see list of models above). These are simple files, specifying the model to be examined, the run number and the number of MCMC-samples, before calling the MCMC routine and then storing the result. Since the script only stores one result file, while MCMC analysis scripts rely on multiple result files, you should copy the run file multiple time and change the run number in each copy. 
+
 
 3. Support scripts. These are scripts providing useful functions and code for the run and model scripts and are generally made so that the model used can be changed to a different model easily. These are:
 
@@ -33,6 +35,7 @@ This is a set of scripts for analyzing temporal multispecies occupancy models ta
       d) make_laplace_wrapper.R - Creates the structures that the LaplacesDemon package expects, from the data and prior/likelihood-specifications.
 
       e) find_best_par.R - Runs through the samples returned by LaplacesDemon and finds the parameter set with the highest likelihood.
+
 
 4. Analysis scripts. These are also made so that one model can be replaced by another easily, using the “model” variable.
 
@@ -52,7 +55,22 @@ This is a set of scripts for analyzing temporal multispecies occupancy models ta
 
       h) plotting_full_model.R - Reads the plotting_variables.RData file from "rel_abundance_start.R" and plots from that.
 
-5. Data files: allsamples_with_counts_and_metainfo.csv. Bryozoan site-wise data for 3 focus species and 1 superspeces from the Wanganui basin. Contains ∂18O- or Mg/Ca data in addition, for regression models.
 
-6. Parameter estimate files: par_mean_global.RData, par_mean_foccu.RData, par_mean_f.RData, par_median_global.RData, par_median_foccu.RData, par_median_f.RData, par_sd_global.RData, par_sd_foccu.RData, par_sd_f.RData. Contains mean, median, and standard deviation from the MCMC samples of the simplest models ("global", "foccu" and "f").
+5. Simulation files:
+
+      a) simdata.R - Simulates from an idealized (while still realistic) parameter set and number of sites/shells scenario. From this constant setup, it creates 100 simulated datasets. These can then be analyzed by modifying simoccu_run_f_sf.R so that it reads for a given simulation number (and thus stores to the an output file with the same number).
+      
+      b) simoccu_run_f_sf.R - Analyses a simulation file. As it is, it runs for simulation number 1, but if you make 100 copies, it you can run on all 100 simulation files. Uses simoccu_read_data.R and simoccu_3stage_cpu.R similarly to how the actual data used read_data.R and 3stage_cpu.R 
+      
+      c) simoccu_read_data.R - Script for reading from a simulation with a given simulation number (defined in simoccu_run_f_sf.R).
+      
+      d) simoccu_3stage.R - MCMC script that stores the output for a given simulation number defined in simoccu_run_f_sf.R).
+
+      e) simoccu_plot.R - Reads the analysis output files for the 100 input simulation files. Creates summary plots.
+      
+      
+6. Data files: allsamples_with_counts_and_metainfo.csv. Bryozoan site-wise data for 3 focus species and 1 superspeces from the Wanganui basin. Contains ∂18O- or Mg/Ca data in addition, for regression models.
+
+
+7. Parameter estimate files: par_mean_global.RData, par_mean_foccu.RData, par_mean_f.RData, par_median_global.RData, par_median_foccu.RData, par_median_f.RData, par_sd_global.RData, par_sd_foccu.RData, par_sd_f.RData. Contains mean, median, and standard deviation from the MCMC samples of the simplest models ("global", "foccu" and "f").
 
