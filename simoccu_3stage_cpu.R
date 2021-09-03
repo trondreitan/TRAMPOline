@@ -7,7 +7,7 @@
 # thin 
 # cpus
 
-source("simoccu_read_data.R")
+source("read_data.R")
 source("betabin.R")
 source(sprintf("model_%s.R",model))
 hyper=hyper.this
@@ -41,10 +41,18 @@ data=make.data(par0,hyper,y)
 source("find_best_par.R")
 
 # Stage 1:
-Fit1=LaplacesDemon.hpc(Model, Data=data, par0,Iterations=60000,
+if(cpus>1)
+{
+ Fit1=LaplacesDemon.hpc(Model, Data=data, par0,Iterations=60000,
   Algorithm="UESS", Chains=cpus, CPUs=cpus,
   Specs=list(A=Inf, B=NULL, m=100, n=0)
-)
+ )
+ }
+if(cpus==1)
+{
+ Fit1=LaplacesDemon(Model, Data=data, par0,Iterations=60000,
+  Algorithm="UESS", Specs=list(A=Inf, B=NULL, m=100, n=0) )
+}
 # or 
 # Fit1=LaplacesDemon(Model, Data=data, par0,Iterations=6000,Algorithm="UESS", Specs=list(A=Inf, B=NULL, m=100, n=0) )
 
@@ -55,10 +63,18 @@ data=make.data(par0,hyper,y)
 
 
 # Stage 2:
-Fit2=LaplacesDemon.hpc(Model, Data=data, par0,Iterations=12000,
+if(cpus>1)
+{
+ Fit2=LaplacesDemon.hpc(Model, Data=data, par0,Iterations=12000,
   Algorithm="AMWG",Chains=cpus, CPUs=cpus,
   Specs=list(B=NULL, n=0, Periodicity=50)
-)
+ )
+}
+if(cpus==1)
+{
+ Fit2=LaplacesDemon(Model, Data=data, par0,Iterations=12000,
+  Algorithm="AMWG",Specs=list(B=NULL, n=0, Periodicity=50) )
+}
 # or
 # Fit2=LaplacesDemon(Model, Data=data, par0,Iterations=2000,Algorithm="AMWG",Specs=list(B=NULL, n=0, Periodicity=50) )
 
@@ -68,9 +84,17 @@ data=make.data(par0,hyper,y)
 
 
 # Stage 3:
-Fit3=LaplacesDemon.hpc(Model, Data=data, par0,Iterations=N.mcmc,Thinning=thin,
+if(cpus>1)
+{
+ Fit3=LaplacesDemon.hpc(Model, Data=data, par0,Iterations=N.mcmc,Thinning=thin,
   Chains=cpus, CPUs=cpus,Specs=list(alpha.star=0.44),
   Algorithm="CHARM",Covar=Fit2$Covar)
+}
+if(cpus==1)
+{
+ Fit3=LaplacesDemon(Model, Data=data, par0,Iterations=N.mcmc,Thinning=thin,
+  Specs=list(alpha.star=0.44),Algorithm="CHARM",Covar=Fit2$Covar)
+}
 # or
 # Fit3=LaplacesDemon(Model, Data=data, par0,Iterations=10000,Algorithm="CHARM",Covar=Fit2$Covar)
 

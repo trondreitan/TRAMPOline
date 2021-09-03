@@ -8,6 +8,6 @@ thin=50
 cpus=7
 sim.nr=1
 
-source("simoccu_3stage_cpu.R")
+source("3stage_cpu.R")
 
 
