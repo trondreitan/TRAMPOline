@@ -45,15 +45,17 @@ This is a set of scripts for analyzing temporal multispecies occupancy models ta
 
       c) lookat_modelselect.R - Special "lookat" file for the model selection case.
 
-      d) rel_abundance2.R - Calculates relative abundance right from the MCMC output files.
+      d) rel_abundance3.R - Calculates relative abundance right from the MCMC output files.
 
       e) rel_abundance_start.R - Also calculates relative abundance, but stores the estimates in an output file called "plotting_variables" rather than plot directly.
 
       f) rel_abundance_lambda.R - Calculates, saves and plots relative abundance estimates for the "lambda_f_sf" model.
 
-      g) compare_rel_abundance.R - Plots relative abundance estimates for multiple models. (One needs to use the rel_abundance_start.R and rel_abundance_lambda.R scripts for making the relative abundance output files used here).
+      g) compare_rel_abundance.R - Plots relative abundance estimates for full model vs abundance-focused models. (One needs to use the rel_abundance_start.R and rel_abundance_lambda.R scripts for making the relative abundance output files used here).
+      
+      h) compare_rel_abundance_4model.R - Plots relative abundance estimates for multiple models, full model, OU model, O18 regression model and Mg regression model. (One needs to use the rel_abundance_start.R script for each model for making the relative abundance output files used here).
 
-      h) plotting_full_model.R - Reads the plotting_variables.RData file from "rel_abundance_start.R" and plots from that.
+      i) plotting_full_model.R - Reads the plotting_variables.RData file from "rel_abundance_start.R" and plots from that.
 
 
 5. Simulation files:
