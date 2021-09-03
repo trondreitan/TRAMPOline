@@ -98,25 +98,22 @@ for(i in 1:Nf)
  logit.occu.formation.species[,i,]=const.logit.occu+f.occu[,i]%*%t(rep(1,N.sp-1))+sf.occu[,i,]
 occu.formation.species=ilogit(logit.occu.formation.species)
 
+logit.psi.star=array(NA,c(NN,Nf,N.sp-1))
+for(i in 1:Nf)
+ logit.psi.star[,i,]=const.logit.occu+sf.occu[,i,]+f.occu[,i]%*%t(rep(1,N.sp-1))
+psi.star=ilogit(logit.psi.star)
+
+
 
 d=dim(occu.formation.species)
 occu.formation.species2=array(NA,c(d[1],d[2],d[3]+1))
 occu.formation.species2[,,1:d[3]]=occu.formation.species
 occu.formation.species2[,,d[3]+1]=1
-
-
-o18bin=array(0,c(NN,Nf,N.sp))
-if(is.o18bin)
-{
-  for(f in 1:Nf)
-   for(s in 1:N.sp)
-   {
-     o18.o.ind=which(names(par0)==sprintf("o18.optim.bin%d",s))
-     o18.w.ind=which(names(par0)==sprintf("o18.lwidth.bin%d",s))
-
-     o18bin[,f,s]=-(o18.formation[f]-res2[,o18.o.ind])^2/exp(res2[,o18.w.ind])^2
-   }
-}
+psi.star2=array(NA,c(d[1],d[2],d[3]+1))
+psi.star2[,,1:d[3]]=psi.star
+psi.star2[,,d[3]+1]=1
+rm(psi.star)
+rm(logit.psi.star)
 
 cabin=array(0,c(NN,Nf,N.sp))
 if(is.cabin)
@@ -131,11 +128,32 @@ if(is.cabin)
    }
 }
 
+o18bin=array(0,c(NN,Nf,N.sp))
+if(is.o18bin)
+{
+  for(f in 1:Nf)
+   for(s in 1:N.sp)
+   {
+     o18.o.ind=which(names(par0)==sprintf("o18.optim.bin%d",s))
+     o18.w.ind=which(names(par0)==sprintf("o18.lwidth.bin%d",s))
+
+     o18bin[,f,s]=-(o18.formation[f]-res2[,o18.o.ind])^2/exp(res2[,o18.w.ind])^2
+   }
+}
+
+
 logit.bin.formation.species=array(NA,c(NN,Nf,N.sp))
 for(i in 1:Nf)
  logit.bin.formation.species[,i,]=const.logit.bin+f.bin[,i]%*%t(rep(1,N.sp))+sf.bin[,i,]+o18bin[,i,]+cabin[,i,]
 bin.formation.species=ilogit(logit.bin.formation.species)
 
+logit.p.star=array(NA,c(NN,Nf,N.sp))
+for(i in 1:Nf)
+ logit.p.star[,i,]=const.logit.bin+sf.bin[,i,]+o18bin[,i,]+cabin[,i,]
+p.star=ilogit(logit.p.star)
+
+rm(cabin)
+rm(o18bin)
 
 
 lower=function(x) quantile(x, 0.025)
@@ -254,6 +272,7 @@ for(s in 1:N.sp-1)
   occu.sf.upper[s,]=apply(occu.formation.species[,,s],2,upper)
 }  
 
+rm(occu.formation.species)
 
 bin.sf.mean=array(NA,c(N.sp,Nf))
 bin.sf.expmean=array(NA,c(N.sp,Nf))
@@ -272,13 +291,31 @@ for(s in 1:N.sp)
 
 
 
+pstar.mean=array(NA,c(N.sp,Nf))
+pstar.median=array(NA,c(N.sp,Nf))
+pstar.lower=array(NA,c(N.sp,Nf))
+pstar.upper=array(NA,c(N.sp,Nf))
+
+for(s in 1:N.sp)
+{
+  pstar.mean[s,]=apply(p.star[,,s],2,mean)  
+  pstar.median[s,]=apply(p.star[,,s],2,median)
+  pstar.lower[s,]=apply(p.star[,,s],2,lower)
+  pstar.upper[s,]=apply(p.star[,,s],2,upper)
+}  
+
+
+
 
 
 # Now make relative abundance, formation by formation:
 # abundance.given.occupancy=bin.formation.species/(1-bin.formation.species)
 #abundance.given.occupancy=-log(1-bin.formation.species)
-abundance.given.occupancy=log(1+exp(logit.bin.formation.species))
-abundance=abundance.given.occupancy*occu.formation.species2
+#abundance.given.occupancy=log(1+exp(logit.bin.formation.species))
+#abundance=abundance.given.occupancy*occu.formation.species2
+
+abundance=log(1+exp(logit.p.star))*psi.star2
+
 
 
 rel.abundance=abundance
@@ -308,6 +345,33 @@ for(i in 1:Nf)
 species=c("Ant.Ton.","Esc.Ex.","Ara.Uni.","Super")
 
 
+rm(rel.abundance)
+
+
+Q=abundance
+for(s in 1:S)
+  Q[,,s]=abundance[,,s]/apply(abundance[,,s],1,mean)
+mean.Q=array(NA,c(Nf,N.sp))
+median.Q=array(NA,c(Nf,N.sp))
+lower.Q=array(NA,c(Nf,N.sp))
+upper.Q=array(NA,c(Nf,N.sp))
+for(f in 1:Nf)
+  for(s in 1:N.sp)
+  {
+    mean.Q[f,s]=mean(Q[!is.infinite(Q[,f,s]),f,s],na.rm=T)
+    median.Q[f,s]=median(Q[,f,s],na.rm=T)
+    lower.Q[f,s]=lower(Q[,f,s])
+    upper.Q[f,s]=upper(Q[,f,s])
+  }
+
+rm(Q)
+
+
+
+
+
+
+rm(abundance)
 
 
 # Raw detection rate data with ocpcuancy*detection
@@ -340,11 +404,7 @@ for(s in 1:N.sp)
 
 # Remove all MCMC stuff (the big chunks):
 
-rm(abundance)
-rm(abundance.given.occupancy)
 rm(bin.formation.species)
-rm(cabin)
-rm(o18bin)
 rm(d)
 rm(const.logit.bin)
 rm(const.logit.occu)
@@ -355,30 +415,14 @@ rm(f.occu)
 rm(Fit3)
 rm(logit.bin.formation.species)
 rm(logit.occu.formation.species)
-rm(occu.formation.species)
 rm(occu.formation.species2)
-rm(
-rm(abundance)
-rm(abundance.given.occupancy)
-rm(bin.formation.species)
-rm(cabin)
-rm(o18bin)
-rm(d)
-rm(const.logit.bin)
-rm(const.logit.occu)
-rm(detection)
-rm(detection.given.occupancy)
-rm(f.bin)
-rm(f.occu)
-rm(Fit3)
-rm(logit.bin.formation.species)
-rm(logit.occu.formation.species)
-rm(occu.formation.species)
-rm(occu.formation.species2)
-rm(rel.abundance)
 rm(res)
 rm(res2)
 rm(sf.bin)
 rm(sf.occu)
+rm(psi.star2)
+rm(p.star)
+rm(logit.p.star)
+
 
 save.image(file="plotting_variables.Rdata")

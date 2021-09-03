@@ -1,5 +1,5 @@
 
-model="lambda_f_sf"
+model="f_sf_cabin"
 
 is.o18bin=FALSE
 if(length(grep("o18bin",model))>0)
@@ -23,11 +23,10 @@ library(coda)
 
 # Collate (if multiple runs)
 N.start=1
-N.runs=50
+N.runs=40
 
 for(i in 1:N.runs)
 {
-  show(i)
   load(sprintf("%s_%02d.Rdata",model,i+N.start-1))
   start=1
   if(i==1)
@@ -65,24 +64,24 @@ pname=names(par0)
 const.occu.index=which(substr(pname,1,16)=="logit.const.occu")
 const.logit.occu=res2[,const.occu.index]
 
-const.lambda.index=which(substr(pname,1,16)=="log.const.lambda")
-const.log.lambda=res2[,const.lambda.index]
+const.bin.index=which(substr(pname,1,15)=="logit.const.bin")
+const.logit.bin=res2[,const.bin.index]
 
 f.occu.index=which(substr(pname,1,6)=="f.occu")
 f.occu=res2[,f.occu.index]
 
-f.lambda.index=which(substr(pname,1,8)=="f.lambda")
-f.lambda=res2[,f.lambda.index]
+f.bin.index=which(substr(pname,1,5)=="f.bin")
+f.bin=res2[,f.bin.index]
 
 sf.occu.index=which(substr(pname,1,7)=="sf.occu")
 sf.occu=array(NA,c(NN,Nf,N.sp-1))
 for(i in 1:NN)
   sf.occu[i,,]=matrix(res2[i,sf.occu.index], ncol=N.sp-1)
 
-sf.lambda.index=which(substr(pname,1,9)=="sf.lambda")
-sf.lambda=array(NA,c(NN,Nf,N.sp))
+sf.bin.index=which(substr(pname,1,6)=="sf.bin")
+sf.bin=array(NA,c(NN,Nf,N.sp))
 for(i in 1:NN)
-  sf.lambda[i,,]=matrix(res2[i,sf.lambda.index], ncol=N.sp)
+  sf.bin[i,,]=matrix(res2[i,sf.bin.index], ncol=N.sp)
 
 o18.formation=rep(0,Nf)
 ca.formation=rep(0,Nf)
@@ -96,26 +95,31 @@ for(f in 1:Nf)
 
 logit.occu.formation.species=array(NA,c(NN,Nf,N.sp-1))
 logit.psi.star=array(NA,c(NN,Nf,N.sp-1))
-for(i in 1:Nf)   
-{ 
+for(i in 1:Nf)
+{
   logit.occu.formation.species[,i,]=
     const.logit.occu+
-    f.occu[,i]%*%t(rep(1,N.sp-1))+sf.occu[,i,]   
-  logit.psi.star[,i,]=const.logit.occu+
-     f.occu[,i]%*%t(rep(1,N.sp-1))+sf.occu[,i,]
+    f.occu[,i]%*%t(rep(1,N.sp-1))+sf.occu[,i,]
+  logit.psi.star[,i,]=
+    const.logit.occu+
+    f.occu[,i]%*%t(rep(1,N.sp-1))+sf.occu[,i,]
+
 }
 occu.formation.species=ilogit(logit.occu.formation.species)
-psi.star=ilogit(logit.psi.star)
+psi.star=ilogit(logit.occu.formation.species)
+rm(logit.occu.formation.species)
 
 
 d=dim(occu.formation.species)
 occu.formation.species2=array(NA,c(d[1],d[2],d[3]+1))
 occu.formation.species2[,,1:d[3]]=occu.formation.species
 occu.formation.species2[,,d[3]+1]=1
+rm(occu.formation.species)
 
 psi.star2=array(NA,c(d[1],d[2],d[3]+1))
 psi.star2[,,1:d[3]]=psi.star
 psi.star2[,,d[3]+1]=1
+rm(psi.star)
 
 
 
@@ -146,24 +150,24 @@ if(is.cabin)
    }
 }
 
-log.lambda.formation.species=array(NA,c(NN,Nf,N.sp))
-log.lambda.star=array(NA,c(NN,Nf,N.sp))
+logit.bin.formation.species=array(NA,c(NN,Nf,N.sp))
+logit.p.star=array(NA,c(NN,Nf,N.sp))
 for(i in 1:Nf)
 {
-  log.lambda.formation.species[,i,]=
-    const.log.lambda+
-    f.lambda[,i]%*%t(rep(1,N.sp))+
-    sf.lambda[,i,]+o18bin[,i,]+cabin[,i,]
-  log.lambda.star[,i,]=
-    const.log.lambda+
-    sf.lambda[,i,]+o18bin[,i,]+cabin[,i,]
+  logit.bin.formation.species[,i,]=
+    const.logit.bin+
+    f.bin[,i]%*%t(rep(1,N.sp))+
+    sf.bin[,i,]+o18bin[,i,]+cabin[,i,]
+  logit.p.star[,i,]=
+    const.logit.bin+
+    sf.bin[,i,]+o18bin[,i,]+cabin[,i,]
 }
-lambda.formation.species=exp(log.lambda.formation.species)
-lambda.star=exp(log.lambda.star)
+bin.formation.species=ilogit(logit.bin.formation.species)
+p.star=ilogit(logit.p.star)
 
+rm(logit.bin.formation.species)
+rm(logit.p.star)
 
-bin.formation.species=1-exp(-lambda.formation.species)
-p.star=1-exp(-lambda.star)
 
 
 lower=function(x) quantile(x, 0.025, na.rm=T)
@@ -223,7 +227,7 @@ dev.off()
 
 
 # Formation-wise adjustments to overall occupancy:
-png(sprintf("%s_log_odds_occupancy_formation.png",model),height=1200,width=1600)
+png("log_odds_occupancy_formation.png",height=1200,width=1600)
 par(cex=3) #,cex.lab=1.3,cex.sub=1.3,cex.axis=1.3)
 plot(K, apply(f.occu,2,mean), type="b", ylim=c(-5,7),
   xlab="time", ylab="Log odds ratio, occupancy",lwd=5)
@@ -232,7 +236,7 @@ lines(K, apply(f.occu,2,lower),type="b",lty=2,lwd=2)
 lines(K, apply(f.occu,2,upper),type="b",lty=2,lwd=2)
 dev.off()
 
-png(sprintf("%s_odds_occupancy_formation.png",model),height=1200,width=1600)
+png("odds_occupancy_formation.png",height=1200,width=1600)
 par(cex=3) #,cex.lab=1.3,cex.sub=1.3,cex.axis=1.3)
 plot(K, exp(apply(f.occu,2,mean)), type="b", ylim=c(0.01,500),
   xlab="time", ylab="Odds ratio, occupancy",log="y",lwd=5)
@@ -242,28 +246,28 @@ lines(K, apply(exp(f.occu),2,upper),type="b",lty=2,lwd=2)
 dev.off()
 
 # Formation-wise adjustments to detection:
-png(sprintf("%s_log_odds_detection_formation.png",model),height=1200,width=1600)
+png("log_odds_detection_formation.png",height=1200,width=1600)
 par(cex=3) #,cex.lab=1.3,cex.sub=1.3,cex.axis=1.3)
-plot(K, apply(f.lambda,2,mean), type="b", ylim=c(-2.4,2),
+plot(K, apply(f.bin,2,mean), type="b", ylim=c(-2.4,2),
   xlab="time", ylab="Log-ddds ratio, detection",lwd=5)
-lines(K, apply(f.lambda,2,median),type="b",lty=2,lwd=2)
-lines(K, apply(f.lambda,2,lower),type="b",lty=2,lwd=2)
-lines(K, apply(f.lambda,2,upper),type="b",lty=2,lwd=2)
+lines(K, apply(f.bin,2,median),type="b",lty=2,lwd=2)
+lines(K, apply(f.bin,2,lower),type="b",lty=2,lwd=2)
+lines(K, apply(f.bin,2,upper),type="b",lty=2,lwd=2)
 dev.off()
 
-png(sprintf("%s_odds_detection_formation.png",model),height=1200,width=1600)
+png("odds_detection_formation.png",height=1200,width=1600)
 par(cex=3) #,cex.lab=1.3,cex.sub=1.3,cex.axis=1.3)
-plot(K, exp(apply(f.lambda,2,mean)), type="b", ylim=c(0.1,10),
+plot(K, exp(apply(f.bin,2,mean)), type="b", ylim=c(0.1,10),
   xlab="time", ylab="Odds ratio, detection",log="y",lwd=5)
-lines(K, exp(apply(f.lambda,2,median)),type="b",lty=2,lwd=2)
-lines(K, exp(apply(f.lambda,2,lower)),type="b",lty=2,lwd=2)
-lines(K, exp(apply(f.lambda,2,upper)),type="b",lty=2,lwd=2)
+lines(K, exp(apply(f.bin,2,median)),type="b",lty=2,lwd=2)
+lines(K, exp(apply(f.bin,2,lower)),type="b",lty=2,lwd=2)
+lines(K, exp(apply(f.bin,2,upper)),type="b",lty=2,lwd=2)
 dev.off()
 
 
 
 # Formation-species-wise adjustments to overall occupancy:
-png(sprintf("%s_log_odds_occupancy_species_formation.png",model),height=1200,width=1600)
+png("log_odds_occupancy_species_formation.png",height=1200,width=1600)
 par(cex=3, mfrow=c(2,2)) #,cex.lab=1.3,cex.sub=1.3,cex.axis=1.3)
 plot(K, apply(sf.occu[,,1],2,mean), type="b", ylim=c(-4,4),
   xlab="time", ylab="Log odds ratio, occupancy",lwd=5,main=sp[1])
@@ -282,7 +286,7 @@ lines(K, apply(sf.occu[,,3],2,lower),type="b",lty=2,lwd=2)
 lines(K, apply(sf.occu[,,3],2,upper),type="b",lty=2,lwd=2)
 dev.off()
 
-png(sprintf("%s_odds_occupancy_species_formation.png",model),height=1200,width=1600)
+png("odds_occupancy_species_formation.png",height=1200,width=1600)
 par(cex=3, mfrow=c(2,2)) #,cex.lab=1.3,cex.sub=1.3,cex.axis=1.3)
 plot(K, exp(apply(sf.occu[,,1],2,mean)), type="b", ylim=c(0.01,100),
   xlab="time", ylab="Odds ratio, occupancy",log="y",lwd=5,main=sp[1])
@@ -302,28 +306,52 @@ lines(K, exp(apply(sf.occu[,,3],2,upper)),type="b",lty=2,lwd=2)
 dev.off()
 
 # Formation-species-wise adjustments to detection:
-png(sprintf("%s_lambda_species_formation.png",model),height=1200,width=1600)
+png("log_odds_detection_species_formation.png",height=1200,width=1600)
 par(cex=3, mfrow=c(2,2)) #,cex.lab=1.3,cex.sub=1.3,cex.axis=1.3)
-plot(K, apply(sf.lambda[,,1],2,mean), type="b", ylim=c(-2.4,2),
+plot(K, apply(sf.bin[,,1],2,mean), type="b", ylim=c(-2.4,2),
   xlab="time", ylab="Log-ddds ratio, detection",lwd=5,main=sp[1])
-lines(K, apply(sf.lambda[,,1],2,median),type="b",lty=2,lwd=2)
-lines(K, apply(sf.lambda[,,1],2,lower),type="b",lty=2,lwd=2)
-lines(K, apply(sf.lambda[,,1],2,upper),type="b",lty=2,lwd=2)
-plot(K, apply(sf.lambda[,,2],2,mean), type="b", ylim=c(-8,5),
+lines(K, apply(sf.bin[,,1],2,median),type="b",lty=2,lwd=2)
+lines(K, apply(sf.bin[,,1],2,lower),type="b",lty=2,lwd=2)
+lines(K, apply(sf.bin[,,1],2,upper),type="b",lty=2,lwd=2)
+plot(K, apply(sf.bin[,,2],2,mean), type="b", ylim=c(-8,5),
   xlab="time", ylab="Log-ddds ratio, detection",lwd=5,main=sp[2])
-lines(K, apply(sf.lambda[,,2],2,median),type="b",lty=2,lwd=2)
-lines(K, apply(sf.lambda[,,2],2,lower),type="b",lty=2,lwd=2)
-lines(K, apply(sf.lambda[,,2],2,upper),type="b",lty=2,lwd=2)
-plot(K, apply(sf.lambda[,,3],2,mean), type="b", ylim=c(-4,4),
+lines(K, apply(sf.bin[,,2],2,median),type="b",lty=2,lwd=2)
+lines(K, apply(sf.bin[,,2],2,lower),type="b",lty=2,lwd=2)
+lines(K, apply(sf.bin[,,2],2,upper),type="b",lty=2,lwd=2)
+plot(K, apply(sf.bin[,,3],2,mean), type="b", ylim=c(-4,4),
   xlab="time", ylab="Log-ddds ratio, detection",lwd=5,main=sp[3])
-lines(K, apply(sf.lambda[,,3],2,median),type="b",lty=2,lwd=2)
-lines(K, apply(sf.lambda[,,3],2,lower),type="b",lty=2,lwd=2)
-lines(K, apply(sf.lambda[,,3],2,upper),type="b",lty=2,lwd=2)
-plot(K, apply(sf.lambda[,,4],2,mean), type="b", ylim=c(-1.5,1.5),
+lines(K, apply(sf.bin[,,3],2,median),type="b",lty=2,lwd=2)
+lines(K, apply(sf.bin[,,3],2,lower),type="b",lty=2,lwd=2)
+lines(K, apply(sf.bin[,,3],2,upper),type="b",lty=2,lwd=2)
+plot(K, apply(sf.bin[,,4],2,mean), type="b", ylim=c(-1.5,1.5),
   xlab="time", ylab="Log-ddds ratio, detection",lwd=5,main=sp[4])
-lines(K, apply(sf.lambda[,,4],2,median),type="b",lty=2,lwd=2)
-lines(K, apply(sf.lambda[,,4],2,lower),type="b",lty=2,lwd=2)
-lines(K, apply(sf.lambda[,,4],2,upper),type="b",lty=2,lwd=2)
+lines(K, apply(sf.bin[,,4],2,median),type="b",lty=2,lwd=2)
+lines(K, apply(sf.bin[,,4],2,lower),type="b",lty=2,lwd=2)
+lines(K, apply(sf.bin[,,4],2,upper),type="b",lty=2,lwd=2)
+dev.off()
+
+png("odds_detection_species_formation.png",height=1200,width=1600)
+par(cex=3, mfrow=c(2,2)) #,cex.lab=1.3,cex.sub=1.3,cex.axis=1.3)
+plot(K, exp(apply(sf.bin[,,1],2,mean)), type="b", ylim=c(0.1,10),
+  xlab="time", ylab="Odds ratio, detection",log="y",lwd=5,main=sp[1])
+lines(K, exp(apply(sf.bin[,,1],2,median)),type="b",lty=2,lwd=2)
+lines(K, exp(apply(sf.bin[,,1],2,lower)),type="b",lty=2,lwd=2)
+lines(K, exp(apply(sf.bin[,,1],2,upper)),type="b",lty=2,lwd=2)
+plot(K, exp(apply(sf.bin[,,2],2,mean)), type="b", ylim=c(0.001,100),
+  xlab="time", ylab="Odds ratio, detection",log="y",lwd=5,main=sp[2])
+lines(K, exp(apply(sf.bin[,,2],2,median)),type="b",lty=2,lwd=2)
+lines(K, exp(apply(sf.bin[,,2],2,lower)),type="b",lty=2,lwd=2)
+lines(K, exp(apply(sf.bin[,,2],2,upper)),type="b",lty=2,lwd=2)
+plot(K, exp(apply(sf.bin[,,3],2,mean)), type="b", ylim=c(0.01,100),
+  xlab="time", ylab="Odds ratio, detection",log="y",lwd=5,main=sp[3])
+lines(K, exp(apply(sf.bin[,,3],2,median)),type="b",lty=2,lwd=2)
+lines(K, exp(apply(sf.bin[,,3],2,lower)),type="b",lty=2,lwd=2)
+lines(K, exp(apply(sf.bin[,,3],2,upper)),type="b",lty=2,lwd=2)
+plot(K, exp(apply(sf.bin[,,4],2,mean)), type="b", ylim=c(0.1,10),
+  xlab="time", ylab="Odds ratio, detection",log="y",lwd=5,main=sp[4])
+lines(K, exp(apply(sf.bin[,,4],2,median)),type="b",lty=2,lwd=2)
+lines(K, exp(apply(sf.bin[,,4],2,lower)),type="b",lty=2,lwd=2)
+lines(K, exp(apply(sf.bin[,,4],2,upper)),type="b",lty=2,lwd=2)
 dev.off()
 
 
@@ -341,7 +369,7 @@ for(s in 1:(N.sp-1))
  }
 
 # All species:
-png(sprintf("%s_occupancy_species_formation.png",model),height=1200,width=1600)
+png("occupancy_species_formation.png",height=1200,width=1600)
 par(cex=3,cex.lab=2.9,cex.sub=1.9,cex.axis=1.9,cex.main=1.9,mar=c(10,5,6,1))
 cols=c("red","green","blue", "black")
 tstr=sprintf("Red=%s,Green=%s,Blue=%s",sp[1],sp[2],sp[3])
@@ -352,7 +380,7 @@ lines(K, apply(occu.formation.species[,,2],2,mean),col=cols[2],lwd=4)
 lines(K, apply(occu.formation.species[,,3],2,mean), type="b",col=cols[3],lwd=4)
 dev.off()
 
-png(sprintf("%s_occupancy_species_formation_uncert.png",model),height=1200,width=1600)
+png("occupancy_species_formation_uncert.png",height=1200,width=1600)
 par(cex=3,cex.lab=2.9,cex.sub=1.9,cex.axis=1.9,mar=c(10,5,1,1))
 par(mfrow=c(2,2))
 plot(K, apply(occu.formation.species[,,1],2,mean), type="b", ylim=c(0,1),
@@ -378,7 +406,7 @@ dev.off()
 
 
 # Per formation per species detection
-png(sprintf("%s_detection_species_formation.png",model),height=1200,width=1600)
+png("detection_species_formation.png",height=1200,width=1600)
 par(cex=3,cex.lab=2.9,cex.sub=1.9,cex.axis=1.9,cex.main=1.9,mar=c(10,5,6,1))
 cols=c("red","green","blue", "black")
 tstr=sprintf("red=%s,green=%s\nblue=%s,black=superspecies",sp[1],sp[2],sp[3])
@@ -390,7 +418,7 @@ lines(K, apply(bin.formation.species[,,3],2,mean), type="b",col=cols[3],lwd=4)
 lines(K, apply(bin.formation.species[,,4],2,mean), type="b",col=cols[4],lwd=4)
 dev.off()
 
-png(sprintf("%s_detection_species_formation_uncert.png",model),height=1200,width=1600)
+png("detection_species_formation_uncert.png",height=1200,width=1600)
 par(cex=3,cex.lab=2.9,cex.sub=1.9,cex.axis=1.9,mar=c(10,5,1,1))
 par(mfrow=c(2,2))
 plot(K, apply(bin.formation.species[,,1],2,mean), type="b", ylim=c(0.0001,1),
@@ -418,16 +446,24 @@ lines(K, apply(bin.formation.species[,,4],2,lower),lty=2)
 lines(K, apply(bin.formation.species[,,4],2,upper),lty=2)
 dev.off()
 
+rm(bin.formation.species)
+rm(occu.formation.species2)
+
+
+
 
 
 
 # Now make relative abundance, formation by formation:
 # abundance.given.occupancy=bin.formation.species/(1-bin.formation.species)
 #abundance.given.occupancy=-log(1-bin.formation.species)
-#abundance.given.occupancy=lambda.formation.species
+#abundance.given.occupancy=log(1+exp(logit.bin.formation.species))
 #abundance=abundance.given.occupancy*occu.formation.species2
 
+
 abundance=-log(1-p.star)*psi.star2
+
+
 
 
 rel.abundance=abundance
@@ -441,8 +477,8 @@ upper.rel.abundance=array(NA,c(Nf,N.sp))
 for(f in 1:Nf)
   for(s in 1:N.sp)
   {
-    mean.rel.abundance[f,s]=mean(rel.abundance[,f,s],na.rm=T)
-    median.rel.abundance[f,s]=median(rel.abundance[,f,s],na.rm=T)
+    mean.rel.abundance[f,s]=mean(rel.abundance[,f,s])
+    median.rel.abundance[f,s]=median(rel.abundance[,f,s])
     lower.rel.abundance[f,s]=lower(rel.abundance[,f,s])
     upper.rel.abundance[f,s]=upper(rel.abundance[,f,s])
   }
@@ -454,7 +490,7 @@ save(upper.rel.abundance, file=sprintf("upper_ra_%s.Rdata",model))
 
 
 
-png(sprintf("%s_rel_abundance.png",model),height=1200,width=1600)
+png("rel_abundance.png",height=1200,width=1600)
 par(cex=3,cex.lab=2.9,cex.sub=1.9,cex.axis=2.2,cex.main=1.9,mar=c(10,5,6,1))
 cols=c("red","green","blue", "black")
 tstr=sprintf("red=%s,green=%s\nblue=%s,black=superspecies",sp[1],sp[2],sp[3])
@@ -470,7 +506,7 @@ dev.off()
 
 
 
-png(sprintf("%s_rel_abundance_uncert.png",model),height=1200,width=1600)
+png("rel_abundance_uncert.png",height=1200,width=1600)
 par(cex=3,cex.lab=2.9,cex.sub=1.9,cex.axis=1.9,mar=c(10,5,1,1))
 par(mfrow=c(2,2))
 plot(K, mean.rel.abundance[,1], type="b", ylim=c(0.0001,1),
@@ -505,7 +541,7 @@ for(i in 1:Nf)
   A[,i]=apply(rel.abundance[,i,],2,mean)
 species=c("Ant.Ton.","Esc.Ex.","Ara.Uni.","Super")
 
-png(sprintf("%srel_abundance_formation.png",model),height=1200,width=1600)
+png("rel_abundance_formation.png",height=1200,width=1600)
 par(cex=3,cex.lab=2, cex.sub=2,cex.main=2,cex.axis=2)
 par(mfrow=c(3,3))
 for(i in 1:Nf)
