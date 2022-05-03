@@ -1,4 +1,4 @@
-This is a set of scripts for analyzing temporal multispecies occupancy models targeted towards estimating relative abundance estimates. Relative abundance is the abundance of a species compared to the other species in question for different time intervals (formations). For our case, we singled out 3 focus bryozoan species, and let the colonies of other species fall into a "superspecies" category. We made the scripts so that it would be easy to switch between models, using the variable called “model” to do this. These scripts fall into several categories.
+This is a set of scripts for analyzing temporal multispecies occupancy models targeted towards estimating relative abundance estimates. In addition, the supplementary material is also found here as a Wrod file, under the name "Reitan Liow Ergon occupancy_SI.docx". Relative abundance is the abundance of a species compared to the other species in question for different time intervals (formations). For our case, we singled out 3 focus bryozoan species, and let the colonies of other species fall into a "superspecies" category. We made the scripts so that it would be easy to switch between models, using the variable called “model” to do this. These scripts fall into several categories.
 
 1. Model specification scripts. These have file names of the type "model_(modelname).R", where (modelname) is the name of the model. Each model file contains two functions for initializing parameters (either with or without parameter estimates from a simpler model), a hyper-parameter specification, a log-prior specification, and a log-likelihood-specification. Here is a list of out models in ascending model complexity order up to the full model (the more complex models are not nested inside each other):
 
@@ -75,4 +75,6 @@ This is a set of scripts for analyzing temporal multispecies occupancy models ta
 
 
 7. Parameter estimate files: par_mean_global.RData, par_mean_foccu.RData, par_mean_f.RData, par_median_global.RData, par_median_foccu.RData, par_median_f.RData, par_sd_global.RData, par_sd_foccu.RData, par_sd_f.RData. Contains mean, median, and standard deviation from the MCMC samples of the simplest models ("global", "foccu" and "f").
+
+8. Supplementary material (the file "Reitan Liow Ergon occupancy_SI.docx").
 
