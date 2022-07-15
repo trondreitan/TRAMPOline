@@ -196,7 +196,7 @@ loglik.flat=function(Y,X,par)
   if(sum(lambda.mat==0 & counts>0)>0)
     return(-1e+200)
   
-  nrep=Y$Total%*%t(rep(1,4))
+  nrep=Y$Total%*%t(rep(1,N.sp))
   ll=ll+sum(dlbetabin.zero(counts, nrep, 1-exp(-lambda.mat), betabin.s.use, occu.mat))
   
   return(ll)
